@@ -57,6 +57,6 @@ Resources:
   TestNestQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: nest-queue
+      QueueName: nest-queue-test
       DelaySeconds: 0
       VisibilityTimeout: 120

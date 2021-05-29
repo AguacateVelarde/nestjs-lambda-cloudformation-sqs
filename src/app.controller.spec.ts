@@ -16,10 +16,8 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return an echo to the params', () => {
-      const value = { say: "Hello" }; 
-      expect(
-        appController.getEcho(value)
-      ).toBe(value);
+      const value = { say: 'Hello' };
+      expect(appController.getEcho(value)).toBe(value);
     });
   });
 });

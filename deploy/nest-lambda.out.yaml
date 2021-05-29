@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda with nestjs.
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: allowLambdaLogs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*
+      - PolicyName: allowSqs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+            - sqs:ChangeMessageVisibility
+            Resource:
+              Fn::GetAtt:
+              - TestNestQueue
+              - Arn
+  LambdaNestJSFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambda-entry-point.handler
+      Runtime: nodejs14.x
+      CodeUri: s3://test-nest-1.0.0/2591a952c92a838ea93f8d34b3d53008
+      MemorySize: 512
+      Timeout: 60
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+  LambdaFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10
+      Enabled: true
+      EventSourceArn:
+        Fn::GetAtt:
+        - TestNestQueue
+        - Arn
+      FunctionName:
+        Fn::GetAtt:
+        - LambdaNestJSFunction
+        - Arn
+  TestNestQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: nest-queue-test
+      DelaySeconds: 0
+      VisibilityTimeout: 120
